@@ -15,13 +15,13 @@ Siga os passos abaixo para instalar e executar o NoPong no seu computador:
 2. Clone o repositório do jogo:
 
 ```bash
-git clone https://github.com/your-username/nopong.git
+git clone https://github.com/lexmarcos/NoPong
 ```
 
 Navegue até a pasta do jogo e instale as dependências:
 
 ```bash
-cd nopong
+cd NoPong
 npm install
 ```
 
