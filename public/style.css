@@ -1,0 +1,31 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background-color: black;
+}
+
+.waiting-players {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  color: #fff;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shell-game {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  align-items: center;
+  color: #fff;
+}
+
+.score {
+  color: #fff;
+}
