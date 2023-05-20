@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create room</title>
+  </head>
+  <body>
+    <h1>Create room</h1>
+    <form id="room-form">
+      <label for="room-name">Nome da sala:</label>
+      <input type="text" id="room-name" name="room-name" required />
+      <input type="submit" value="Criar sala" />
+    </form>
+    <script>
+      document.getElementById("room-form").addEventListener("submit", function (event) {
+        // Impede o comportamento de envio padrão
+        event.preventDefault();
+
+        // Obtém o nome da sala do campo de entrada
+        var roomName = document.getElementById("room-name").value;
+
+        // Redireciona o usuário para a URL com o nome da sala como um parâmetro de pesquisa
+        window.location.href = "/?room=" + encodeURIComponent(roomName);
+      });
+    </script>
+  </body>
+</html>

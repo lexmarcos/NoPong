@@ -1,12 +1,18 @@
 const socket = io();
 
+const room = new URLSearchParams(window.location.search).get("room");
+if (!room) {
+  window.location.href = "/createRoom.html";
+}
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+
+socket.emit("joinRoom", { room });
+
 // Função para enviar comandos de movimento
 function sendMove(direction) {
-  console.log(socket.id);
   // Envia a direção do movimento e o identificador do jogador para o servidor
-  socket.emit("move", { id: socket.id, direction });
+  socket.emit("move", { id: socket.id, direction, room });
 }
 
 let previousState = null;
