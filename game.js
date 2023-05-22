@@ -16,7 +16,7 @@ const createEngine = () => {
   // Configuração dos objetos do jogo
   const paddleWidth = 20;
   const paddleHeight = 100;
-  const paddleSpeed = 80;
+  const paddleSpeed = 150;
   const maxPaddleY = engine.world.bounds.max.y - paddleHeight / 2;
   const minPaddleY = paddleHeight / 2;
 
@@ -25,7 +25,7 @@ const createEngine = () => {
     friction: 0,
     frictionStatic: 0,
     frictionAir: 0,
-    restitution: 1.05,
+    restitution: 1.1,
   };
 
   const ball = Bodies.circle(400, 300, 10, ballSettings);
@@ -81,11 +81,8 @@ function resetBall(ball) {
 }
 
 function getRandomInitialForce() {
-  const minForce = 0.0062;
-  const maxForce = 0.0064;
-
-  const xForce = minForce + Math.random() * (maxForce - minForce);
-  const yForce = minForce + Math.random() * (maxForce - minForce);
+  const xForce = 0.007;
+  const yForce = 0.007;
 
   const xDirection = Math.random() < 0.5 ? 1 : -1;
   const yDirection = Math.random() < 0.5 ? 1 : -1;
@@ -103,6 +100,14 @@ const startGame = (engineData, roomName, players, gameState) => {
 
   const detectorOfLeftWall = Detector.create({
     bodies: [ball, leftWall],
+  });
+
+  const detectorPaddleA = Detector.create({
+    bodies: [ball, paddleA],
+  });
+
+  const detectorPaddleB = Detector.create({
+    bodies: [ball, paddleB],
   });
 
   function gameLoop() {
@@ -129,6 +134,20 @@ const startGame = (engineData, roomName, players, gameState) => {
 
       const collisionsWithRightWall = Detector.collisions(detectorOfRightWall, engine);
       const collisionsWithLeftWall = Detector.collisions(detectorOfLeftWall, engine);
+      const collisionsWithPaddleA = Detector.collisions(detectorPaddleA, engine);
+      const collisionsWithPaddleB = Detector.collisions(detectorPaddleB, engine);
+
+      if (collisionsWithPaddleA.length > 0) {
+        gameState.isCollidingWithPaddleA = true;
+      } else {
+        gameState.isCollidingWithPaddleA = false;
+      }
+
+      if (collisionsWithPaddleB.length > 0) {
+        gameState.isCollidingWithPaddleB = true;
+      } else {
+        gameState.isCollidingWithPaddleB = false;
+      }
 
       if (collisionsWithRightWall.length > 0) {
         score.playerA += 1;
@@ -144,7 +163,7 @@ const startGame = (engineData, roomName, players, gameState) => {
       gameState.state = "playing";
 
       const lerp = (start, end, amount) => start + (end - start) * amount;
-      const lerpSpeed = 0.2;
+      const lerpSpeed = 0.1;
 
       Object.values(players).forEach((player) => {
         const targetY = player.targetY;
