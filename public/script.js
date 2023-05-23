@@ -1,4 +1,34 @@
-const socket = io();
+const socket = io("ws://localhost:3000", {
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  reconnectionAttempts: Infinity,
+});
+
+// Quando o socket se conecta, verifica se há um estado salvo no LocalStorage
+socket.on("connect", () => {
+  console.log("aqui");
+  const savedState = localStorage.getItem("savedState");
+  if (savedState) {
+    // Se houver um estado salvo, envie-o para o servidor
+    socket.emit("loadState", JSON.parse(savedState));
+  }
+});
+
+// Quando o estado do jogo é atualizado, salve-o no LocalStorage
+socket.on("stateUpdate", (state) => {
+  localStorage.setItem("savedState", JSON.stringify(state));
+});
+
+const saveSocketId = (id) => {
+  localStorage.setItem(
+    "oldId",
+    JSON.stringify({
+      createdAt: Date.now(),
+      id: socket.id,
+    })
+  );
+};
 
 const room = new URLSearchParams(window.location.search).get("room");
 if (!room) {
@@ -8,6 +38,7 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 socket.emit("joinRoom", { room });
+saveSocketId(socket.id);
 
 // Função para enviar comandos de movimento
 function sendMove(direction) {
@@ -158,8 +189,8 @@ function clearCanvas() {
 }
 
 function drawGameElements(state) {
-  const paddleAColor = paddleATouched ? "#FFFFFF" : "#59ffa7";
-  const paddleBColor = paddleBTouched ? "#FFFFFF" : "#69acff";
+  const paddleAColor = paddleATouched ? "#FFFFFF" : "#00fa75";
+  const paddleBColor = paddleBTouched ? "#FFFFFF" : "#008efa";
 
   drawRectangle(state.paddleA.x, state.paddleA.y, 20, 100, paddleAColor);
   drawRectangle(state.paddleB.x, state.paddleB.y, 20, 100, paddleBColor);

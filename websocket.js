@@ -12,10 +12,15 @@ const getPlayerPaddle = (numbersOfPlayers, engineDataOfRoom) => {
 
 const joinRoom = (socket, room) => {
   if (!rooms.has(room)) {
+    const engineData = createEngine(room);
     rooms.set(room, {
       players: [],
-      engineData: createEngine(room),
+      engineData,
       gameState: {
+        paddleA: engineData.paddleA.position,
+        paddleB: engineData.paddleB.position,
+        ball: engineData.ball.position,
+        state: "waitingForPlayers",
         firstRun: true,
         gameStarted: false,
         score: {
@@ -90,5 +95,22 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     disconnectPlayer(socket);
+  });
+
+  socket.on("reconnect", (attemptNumber) => {
+    console.log("user reconnected");
+  });
+
+  socket.on("loadState", (savedState) => {
+    console.log("loadState", savedState);
+    // Aqui você pode verificar se o estado salvo é válido e, em seguida, carregá-lo
+    // Por exemplo, você pode querer verificar se o estado salvo contém todas as propriedades necessárias
+    if (isValidState(savedState)) {
+      // Se o estado for válido, carregue-o
+      gameState = savedState;
+    } else {
+      // Se o estado não for válido, você pode querer enviar uma mensagem de erro para o cliente
+      socket.emit("errorMessage", "Invalid saved state");
+    }
   });
 });

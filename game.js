@@ -25,7 +25,7 @@ const createEngine = () => {
     friction: 0,
     frictionStatic: 0,
     frictionAir: 0,
-    restitution: 1.1,
+    restitution: 1.2,
   };
 
   const ball = Bodies.circle(400, 300, 10, ballSettings);
@@ -81,11 +81,18 @@ function resetBall(ball) {
 }
 
 function getRandomInitialForce() {
-  const xForce = 0.007;
-  const yForce = 0.007;
+  const maxForce = 0.004; // Defina a força máxima aqui
+  const minForce = 0.004; // Defina a força mínima aqui
+  let xForce = Math.random() * (maxForce - minForce) + minForce;
+  let yForce = Math.random() * (maxForce - minForce) + minForce;
 
   const xDirection = Math.random() < 0.5 ? 1 : -1;
-  const yDirection = Math.random() < 0.5 ? 1 : -1;
+  let yDirection = Math.random() < 0.5 ? 1 : -1;
+
+  // Adiciona uma verificação para garantir que a força y não seja muito pequena
+  while (Math.abs(yForce * yDirection) < minForce) {
+    yForce = Math.random() * (maxForce - minForce) + minForce;
+  }
 
   return { x: xForce * xDirection, y: yForce * yDirection };
 }
@@ -110,14 +117,9 @@ const startGame = (engineData, roomName, players, gameState) => {
     bodies: [ball, paddleB],
   });
 
+  const maxSpeed = 10;
+
   function gameLoop() {
-    const gameState = {
-      paddleA: paddleA.position,
-      paddleB: paddleB.position,
-      ball: ball.position,
-      score: score,
-      state: "waitingForPlayers",
-    };
     if (players.length === 2 && !gameStarted) {
       gameStarted = true;
       gameState.state = "playing";
@@ -125,6 +127,15 @@ const startGame = (engineData, roomName, players, gameState) => {
 
     if (gameStarted) {
       Engine.update(engine, 1000 / 60);
+      const speed = Math.sqrt(ball.velocity.x ** 2 + ball.velocity.y ** 2);
+      if (speed > maxSpeed) {
+        // A bola está se movendo muito rápido! Reduzir a velocidade para o máximo.
+        const scaleFactor = maxSpeed / speed; // Este é o fator pelo qual precisamos reduzir a velocidade para trazê-la de volta ao máximo
+        Body.setVelocity(ball, {
+          x: ball.velocity.x * scaleFactor,
+          y: ball.velocity.y * scaleFactor,
+        });
+      }
 
       if (firstRun) {
         const initialForce = getRandomInitialForce();
@@ -176,7 +187,9 @@ const startGame = (engineData, roomName, players, gameState) => {
     io.to(roomName).emit("gameState", gameState);
     setTimeout(gameLoop, 1000 / 60);
   }
-  gameLoop();
+  if (!gameStarted) {
+    gameLoop();
+  }
 };
 
 module.exports = {
