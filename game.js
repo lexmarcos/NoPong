@@ -25,7 +25,7 @@ const createEngine = () => {
     friction: 0,
     frictionStatic: 0,
     frictionAir: 0,
-    restitution: 1.2,
+    restitution: 1.4,
   };
 
   const ball = Bodies.circle(400, 300, 10, ballSettings);
@@ -59,47 +59,6 @@ const createEngine = () => {
   const bottomWall = Bodies.rectangle(400, 605, 800, 10, wallSettings);
 
   World.add(engine.world, [paddleA, paddleB, ball, leftWall, rightWall, topWall, bottomWall]);
-  return {
-    engine: engine,
-    paddleA: paddleA,
-    paddleB: paddleB,
-    ball: ball,
-    gameStarted: false,
-    leftWall,
-    rightWall,
-    topWall,
-    bottomWall,
-    paddleSpeed,
-    maxPaddleY,
-    minPaddleY,
-  };
-};
-
-function resetBall(ball) {
-  Body.setPosition(ball, { x: 400, y: 300 });
-  Body.setVelocity(ball, { x: 0, y: 0 });
-}
-
-function getRandomInitialForce() {
-  const maxForce = 0.004; // Defina a força máxima aqui
-  const minForce = 0.004; // Defina a força mínima aqui
-  let xForce = Math.random() * (maxForce - minForce) + minForce;
-  let yForce = Math.random() * (maxForce - minForce) + minForce;
-
-  const xDirection = Math.random() < 0.5 ? 1 : -1;
-  let yDirection = Math.random() < 0.5 ? 1 : -1;
-
-  // Adiciona uma verificação para garantir que a força y não seja muito pequena
-  while (Math.abs(yForce * yDirection) < minForce) {
-    yForce = Math.random() * (maxForce - minForce) + minForce;
-  }
-
-  return { x: xForce * xDirection, y: yForce * yDirection };
-}
-
-const startGame = (engineData, roomName, players, gameState) => {
-  let { engine, paddleA, paddleB, ball, leftWall, rightWall } = engineData;
-  let { firstRun, gameStarted, score } = gameState;
 
   const detectorOfRightWall = Detector.create({
     bodies: [ball, rightWall],
@@ -117,16 +76,77 @@ const startGame = (engineData, roomName, players, gameState) => {
     bodies: [ball, paddleB],
   });
 
-  const maxSpeed = 10;
+  return {
+    engine: engine,
+    paddleA: paddleA,
+    paddleB: paddleB,
+    ball: ball,
+    gameStarted: false,
+    leftWall,
+    rightWall,
+    topWall,
+    bottomWall,
+    paddleSpeed,
+    maxPaddleY,
+    minPaddleY,
+    detectorOfRightWall,
+    detectorOfLeftWall,
+    detectorPaddleA,
+    detectorPaddleB,
+  };
+};
+
+function resetBall(ball) {
+  Body.setPosition(ball, { x: 400, y: 300 });
+  Body.setVelocity(ball, { x: 0, y: 0 });
+}
+
+function getRandomInitialForce() {
+  const maxForce = 0.1; // Defina a força máxima aqui
+  const minForce = 0.1; // Defina a força mínima aqui
+  let xForce = Math.random() * (maxForce - minForce) + minForce;
+  let yForce = Math.random() * (maxForce - minForce) + minForce;
+
+  const xDirection = Math.random() < 0.5 ? 1 : -1;
+  let yDirection = Math.random() < 0.5 ? 1 : -1;
+
+  // Adiciona uma verificação para garantir que a força y não seja muito pequena
+  while (Math.abs(yForce * yDirection) < minForce) {
+    yForce = Math.random() * (maxForce - minForce) + minForce;
+  }
+
+  return { x: xForce * xDirection, y: yForce * yDirection };
+}
+
+const startGame = (engineData, roomName, players, gameState) => {
+  let { engine, ball, detectorOfRightWall, detectorOfLeftWall, detectorPaddleA, detectorPaddleB } =
+    engineData;
+  let { firstRun, gameStarted, score, gamePaused, gameLoopInterval } = gameState;
+
+  const maxSpeed = 15;
 
   function gameLoop() {
+    let { gamePaused } = gameState;
+    if (gameLoopInterval) {
+      clearTimeout(gameLoopInterval);
+    }
     if (players.length === 2 && !gameStarted) {
       gameStarted = true;
+      gamePaused = false;
       gameState.state = "playing";
     }
 
-    if (gameStarted) {
+    if (players.length < 2 && gameStarted) {
+      console.log("game paused", players.length < 2 && gameStarted);
+      io.to(roomName).emit("gameState", gameState);
+      // Um dos jogadores não está pronto, então vamos pausar o jogo
+      gamePaused = true; // Continue o loop, mas não faça nada neste quadro
+      return setTimeout(gameLoop, 1000 / 60);
+    }
+
+    if (gameStarted && !gamePaused) {
       Engine.update(engine, 1000 / 60);
+      console.log("game started");
       const speed = Math.sqrt(ball.velocity.x ** 2 + ball.velocity.y ** 2);
       if (speed > maxSpeed) {
         // A bola está se movendo muito rápido! Reduzir a velocidade para o máximo.
@@ -185,7 +205,7 @@ const startGame = (engineData, roomName, players, gameState) => {
       });
     }
     io.to(roomName).emit("gameState", gameState);
-    setTimeout(gameLoop, 1000 / 60);
+    gameLoopInterval = setTimeout(gameLoop, 1000 / 60);
   }
   if (!gameStarted) {
     gameLoop();

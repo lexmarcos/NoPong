@@ -17,12 +17,14 @@ const joinRoom = (socket, room) => {
       players: [],
       engineData,
       gameState: {
+        gameLoopInterval: null,
         paddleA: engineData.paddleA.position,
         paddleB: engineData.paddleB.position,
         ball: engineData.ball.position,
         state: "waitingForPlayers",
         firstRun: true,
         gameStarted: false,
+        gamePaused: false,
         score: {
           playerA: 0,
           playerB: 0,
@@ -31,24 +33,33 @@ const joinRoom = (socket, room) => {
     });
   }
 
-  const roomData = rooms.get(room);
-  const engineDataOfRoom = roomData.engineData;
-  const players = roomData.players;
-  const gameState = roomData.gameState;
-  const numbersOfPlayers = players.length;
+  let roomData = rooms.get(room);
+  let engineDataOfRoom = roomData.engineData;
+  let players = roomData.players;
+  let gameState = roomData.gameState;
 
-  if (numbersOfPlayers == 2) {
+  if (players.length == 2) {
     console.log("room is full");
     return;
   }
 
   players.push({
     id: socket.id,
-    paddle: getPlayerPaddle(numbersOfPlayers, engineDataOfRoom),
+    paddle: getPlayerPaddle(players.length, engineDataOfRoom),
     score: 0,
   });
 
-  startGame(engineDataOfRoom, room, players, gameState);
+  if (players.length === 1 && !gameState.gameStarted) {
+    startGame(engineDataOfRoom, room, players, gameState);
+  }
+
+  if (players.length === 2) {
+    rooms.get(room).gameState.gameStarted = true;
+  }
+
+  if (players.length === 2 && gameState.gamePaused) {
+    rooms.get(room).gameState.gamePaused = false;
+  }
 
   socket.join(room);
   console.log("user joined room", room);
@@ -74,6 +85,7 @@ const disconnectPlayer = (socket) => {
     const players = roomData.players;
     const playerIndex = players.findIndex((player) => player.id === socket.id);
     if (playerIndex !== -1) {
+      rooms.get(room).gameState.gamePaused = true;
       players.splice(playerIndex, 1);
       if (players.length === 0) {
         rooms.delete(room);

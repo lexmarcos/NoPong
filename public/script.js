@@ -140,6 +140,7 @@ function updateGameState(score, data) {
 }
 
 socket.on("gameState", (data) => {
+  console.log(data.state);
   const { isCollidingWithPaddleA, isCollidingWithPaddleB, ball, state, score } = data;
   playPaddleSound(isCollidingWithPaddleA, isCollidingWithPaddleB);
   handlePaddleTouch(isCollidingWithPaddleA, isCollidingWithPaddleB);
