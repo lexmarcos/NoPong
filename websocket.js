@@ -23,8 +23,6 @@ const joinRoom = (socket, room) => {
         ball: engineData.ball.position,
         state: "waitingForPlayers",
         firstRun: true,
-        gameStarted: false,
-        gamePaused: false,
         score: {
           playerA: 0,
           playerB: 0,
@@ -49,16 +47,16 @@ const joinRoom = (socket, room) => {
     score: 0,
   });
 
-  if (players.length === 1 && !gameState.gameStarted) {
+  if (players.length === 1 && gameState.state !== "playing") {
     startGame(engineDataOfRoom, room, players, gameState);
   }
 
   if (players.length === 2) {
-    rooms.get(room).gameState.gameStarted = true;
+    gameState.state = "playing";
   }
 
-  if (players.length === 2 && gameState.gamePaused) {
-    rooms.get(room).gameState.gamePaused = false;
+  if (players.length === 2 && gameState.state === "paused") {
+    gameState.state = "playing";
   }
 
   socket.join(room);
@@ -85,7 +83,7 @@ const disconnectPlayer = (socket) => {
     const players = roomData.players;
     const playerIndex = players.findIndex((player) => player.id === socket.id);
     if (playerIndex !== -1) {
-      rooms.get(room).gameState.gamePaused = true;
+      rooms.get(room).gameState.state = "paused";
       players.splice(playerIndex, 1);
       if (players.length === 0) {
         rooms.delete(room);
@@ -111,18 +109,5 @@ io.on("connection", (socket) => {
 
   socket.on("reconnect", (attemptNumber) => {
     console.log("user reconnected");
-  });
-
-  socket.on("loadState", (savedState) => {
-    console.log("loadState", savedState);
-    // Aqui você pode verificar se o estado salvo é válido e, em seguida, carregá-lo
-    // Por exemplo, você pode querer verificar se o estado salvo contém todas as propriedades necessárias
-    if (isValidState(savedState)) {
-      // Se o estado for válido, carregue-o
-      gameState = savedState;
-    } else {
-      // Se o estado não for válido, você pode querer enviar uma mensagem de erro para o cliente
-      socket.emit("errorMessage", "Invalid saved state");
-    }
   });
 });

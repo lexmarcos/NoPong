@@ -169,6 +169,7 @@ document.addEventListener("keydown", (event) => {
   if (event.code === "ArrowUp") {
     sendMove(-1);
   } else if (event.code === "ArrowDown") {
+    console.log("aqui");
     sendMove(1);
   }
 });

@@ -16,7 +16,7 @@ const createEngine = () => {
   // Configuração dos objetos do jogo
   const paddleWidth = 20;
   const paddleHeight = 100;
-  const paddleSpeed = 150;
+  const paddleSpeed = 30;
   const maxPaddleY = engine.world.bounds.max.y - paddleHeight / 2;
   const minPaddleY = paddleHeight / 2;
 
@@ -81,7 +81,6 @@ const createEngine = () => {
     paddleA: paddleA,
     paddleB: paddleB,
     ball: ball,
-    gameStarted: false,
     leftWall,
     rightWall,
     topWall,
@@ -118,96 +117,102 @@ function getRandomInitialForce() {
   return { x: xForce * xDirection, y: yForce * yDirection };
 }
 
-const startGame = (engineData, roomName, players, gameState) => {
-  let { engine, ball, detectorOfRightWall, detectorOfLeftWall, detectorPaddleA, detectorPaddleB } =
-    engineData;
-  let { firstRun, gameStarted, score, gamePaused, gameLoopInterval } = gameState;
+const lerp = (start, end, amount) => start + (end - start) * amount;
+const lerpSpeed = 0.1;
 
+const checkCollisions = (engineData, gameState) => {
+  const collisionsWithRightWall = Detector.collisions(
+    engineData.detectorOfRightWall,
+    engineData.engine
+  );
+  const collisionsWithLeftWall = Detector.collisions(
+    engineData.detectorOfLeftWall,
+    engineData.engine
+  );
+  const collisionsWithPaddleA = Detector.collisions(engineData.detectorPaddleA, engineData.engine);
+  const collisionsWithPaddleB = Detector.collisions(engineData.detectorPaddleB, engineData.engine);
+
+  if (collisionsWithPaddleA.length > 0) {
+    gameState.isCollidingWithPaddleA = true;
+  } else {
+    gameState.isCollidingWithPaddleA = false;
+  }
+
+  if (collisionsWithPaddleB.length > 0) {
+    gameState.isCollidingWithPaddleB = true;
+  } else {
+    gameState.isCollidingWithPaddleB = false;
+  }
+
+  if (collisionsWithRightWall.length > 0) {
+    gameState.score.playerA += 1;
+    resetBall(engineData.ball);
+    gameState.firstRun = true;
+  }
+
+  if (collisionsWithLeftWall.length > 0) {
+    gameState.score.playerB += 1;
+    resetBall(engineData.ball);
+    gameState.firstRun = true;
+  }
+};
+
+const checkMaxSpeed = (engineData, maxSpeed) => {
+  const speed = Math.sqrt(engineData.ball.velocity.x ** 2 + engineData.ball.velocity.y ** 2);
+  if (speed > maxSpeed) {
+    // A bola está se movendo muito rápido! Reduzir a velocidade para o máximo.
+    const scaleFactor = maxSpeed / speed; // Este é o fator pelo qual precisamos reduzir a velocidade para trazê-la de volta ao máximo
+    Body.setVelocity(engineData.ball, {
+      x: engineData.ball.velocity.x * scaleFactor,
+      y: engineData.ball.velocity.y * scaleFactor,
+    });
+  }
+};
+
+checkIfIsFirstRun = (engineData, gameState) => {
+  if (gameState.firstRun) {
+    const initialForce = getRandomInitialForce();
+    Body.applyForce(engineData.ball, engineData.ball.position, initialForce);
+    gameState.firstRun = false;
+  }
+};
+
+const makeMovesOfPadddles = (players) => {
+  Object.values(players).forEach((player) => {
+    const targetY = player.targetY;
+    if (targetY !== undefined) {
+      // Defina a posição do paddle diretamente para a posição alvo
+      Body.setPosition(player.paddle, { x: player.paddle.position.x, y: targetY });
+    }
+  });
+};
+
+const startGame = (engineData, roomName, players, gameState) => {
   const maxSpeed = 15;
 
   function gameLoop() {
-    let { gamePaused } = gameState;
-    if (gameLoopInterval) {
-      clearTimeout(gameLoopInterval);
-    }
-    if (players.length === 2 && !gameStarted) {
-      gameStarted = true;
-      gamePaused = false;
-      gameState.state = "playing";
+    if (gameState.gameLoopInterval) {
+      clearTimeout(gameState.gameLoopInterval);
     }
 
-    if (players.length < 2 && gameStarted) {
-      console.log("game paused", players.length < 2 && gameStarted);
+    if (players.length < 2 && gameState.state === "paused") {
       io.to(roomName).emit("gameState", gameState);
-      // Um dos jogadores não está pronto, então vamos pausar o jogo
-      gamePaused = true; // Continue o loop, mas não faça nada neste quadro
       return setTimeout(gameLoop, 1000 / 60);
     }
 
-    if (gameStarted && !gamePaused) {
-      Engine.update(engine, 1000 / 60);
-      console.log("game started");
-      const speed = Math.sqrt(ball.velocity.x ** 2 + ball.velocity.y ** 2);
-      if (speed > maxSpeed) {
-        // A bola está se movendo muito rápido! Reduzir a velocidade para o máximo.
-        const scaleFactor = maxSpeed / speed; // Este é o fator pelo qual precisamos reduzir a velocidade para trazê-la de volta ao máximo
-        Body.setVelocity(ball, {
-          x: ball.velocity.x * scaleFactor,
-          y: ball.velocity.y * scaleFactor,
-        });
-      }
-
-      if (firstRun) {
-        const initialForce = getRandomInitialForce();
-        Body.applyForce(ball, ball.position, initialForce);
-        firstRun = false;
-      }
-
-      const collisionsWithRightWall = Detector.collisions(detectorOfRightWall, engine);
-      const collisionsWithLeftWall = Detector.collisions(detectorOfLeftWall, engine);
-      const collisionsWithPaddleA = Detector.collisions(detectorPaddleA, engine);
-      const collisionsWithPaddleB = Detector.collisions(detectorPaddleB, engine);
-
-      if (collisionsWithPaddleA.length > 0) {
-        gameState.isCollidingWithPaddleA = true;
-      } else {
-        gameState.isCollidingWithPaddleA = false;
-      }
-
-      if (collisionsWithPaddleB.length > 0) {
-        gameState.isCollidingWithPaddleB = true;
-      } else {
-        gameState.isCollidingWithPaddleB = false;
-      }
-
-      if (collisionsWithRightWall.length > 0) {
-        score.playerA += 1;
-        resetBall(ball);
-        firstRun = true;
-      }
-
-      if (collisionsWithLeftWall.length > 0) {
-        score.playerB += 1;
-        resetBall(ball);
-        firstRun = true;
-      }
+    if (gameState.state === "playing") {
       gameState.state = "playing";
-
-      const lerp = (start, end, amount) => start + (end - start) * amount;
-      const lerpSpeed = 0.1;
-
-      Object.values(players).forEach((player) => {
-        const targetY = player.targetY;
-        if (targetY !== undefined) {
-          const newY = lerp(player.paddle.position.y, targetY, lerpSpeed);
-          Body.setPosition(player.paddle, { x: player.paddle.position.x, y: newY });
-        }
-      });
+      Engine.update(engineData.engine, 1000 / 60);
+      checkMaxSpeed(engineData, maxSpeed);
+      checkIfIsFirstRun(engineData, gameState);
+      checkCollisions(engineData, gameState);
+      makeMovesOfPadddles(players)
     }
+    
     io.to(roomName).emit("gameState", gameState);
-    gameLoopInterval = setTimeout(gameLoop, 1000 / 60);
+    gameState.gameLoopInterval = setTimeout(gameLoop, 1000 / 60);
   }
-  if (!gameStarted) {
+  if (gameState.state !== "playing") {
     gameLoop();
   }
 };
