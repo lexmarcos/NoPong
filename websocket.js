@@ -52,6 +52,7 @@ const joinRoom = (socket, room) => {
   }
 
   if (players.length === 2) {
+    console.log("starting game");
     gameState.state = "playing";
   }
 
@@ -86,6 +87,7 @@ const disconnectPlayer = (socket) => {
       rooms.get(room).gameState.state = "paused";
       players.splice(playerIndex, 1);
       if (players.length === 0) {
+        rooms.get(room).gameState.state = "waitingForPlayers";
         rooms.delete(room);
         console.log(`Room ${room} is empty and has been deleted.`);
       }

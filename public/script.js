@@ -80,8 +80,8 @@ waitingPlayerDiv = document.getElementById("waiting-player");
 
 function setScore(score) {
   if (oldScore && (oldScore.playerA < score.playerA || oldScore.playerB < score.playerB)) {
-    document.getElementById("score").innerHTML = `${score.playerA} | ${score.playerB}`;
-    oldScore = score;
+    document.getElementById("playerA-score").innerHTML = score.playerA;
+    document.getElementById("playerB-score").innerHTML = score.playerB;
   }
 }
 
@@ -140,7 +140,6 @@ function updateGameState(score, data) {
 }
 
 socket.on("gameState", (data) => {
-  console.log(data.state);
   const { isCollidingWithPaddleA, isCollidingWithPaddleB, ball, state, score } = data;
   playPaddleSound(isCollidingWithPaddleA, isCollidingWithPaddleB);
   handlePaddleTouch(isCollidingWithPaddleA, isCollidingWithPaddleB);
@@ -163,21 +162,28 @@ function drawCircle(x, y, radius) {
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, 2 * Math.PI);
   ctx.fill();
+  ctx.shadowBlur = 0;
 }
 
+let moveUp = false;
+let moveDown = false;
+
+const controlsDown = {
+  ArrowUp: () => (moveUp = true),
+  ArrowDown: () => (moveDown = true),
+};
+
+const controlsUp = {
+  ArrowUp: () => (moveUp = false),
+  ArrowDown: () => (moveDown = false),
+};
+
 document.addEventListener("keydown", (event) => {
-  if (event.code === "ArrowUp") {
-    sendMove(-1);
-  } else if (event.code === "ArrowDown") {
-    console.log("aqui");
-    sendMove(1);
-  }
+  controlsDown[event.code]?.();
 });
 
 document.addEventListener("keyup", (event) => {
-  if (event.code === "ArrowUp" || event.code === "ArrowDown") {
-    sendMove(0);
-  }
+  controlsUp[event.code]?.();
 });
 
 function computeAlpha() {
@@ -192,7 +198,7 @@ function clearCanvas() {
 
 function drawGameElements(state) {
   const paddleAColor = paddleATouched ? "#FFFFFF" : "#00fa75";
-  const paddleBColor = paddleBTouched ? "#FFFFFF" : "#008efa";
+  const paddleBColor = paddleBTouched ? "#FFFFFF" : "#ff007b";
 
   drawRectangle(state.paddleA.x, state.paddleA.y, 20, 100, paddleAColor);
   drawRectangle(state.paddleB.x, state.paddleB.y, 20, 100, paddleBColor);
@@ -216,16 +222,18 @@ function drawBallTrail() {
 function render() {
   requestAnimationFrame(render);
 
+  if (moveUp) {
+    sendMove(-1);
+  } else if (moveDown) {
+    sendMove(1);
+  }
+
   if (!currentState) return;
 
   const alpha = computeAlpha();
-
   const interpolatedState = interpolateState(previousState, currentState, alpha);
 
   clearCanvas();
-  if (paddleATouched || paddleBTouched) {
-    console.log("paddle touched");
-  }
   drawGameElements(interpolatedState);
 
   drawBallTrail();

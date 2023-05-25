@@ -1,10 +1,13 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,700;0,900;1,400&display=swap");
+
 body {
+  font-family: "Roboto", sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   margin: 0;
-  background-color: black;
+  background-color: #0d142c;
 }
 
 .waiting-players {
@@ -12,10 +15,11 @@ body {
   width: 100vw;
   height: 100vh;
   color: #fff;
-  background: #000;
+  background-color: #0d142c;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 }
 
 .shell-game {
@@ -27,5 +31,55 @@ body {
 }
 
 .score {
+  width: 100%;
   color: #fff;
+  display: flex;
+  justify-content: space-between;
+}
+
+.score span {
+  margin-top: 10%;
+  width: 100%;
+  font-size: 40pt;
+  font-weight: 900;
+}
+
+.score span:first-child {
+  text-align: left;
+  border-color: #00fa75;
+  color: #68ffae;
+}
+
+.score span:last-child {
+  text-align: right;
+  border-color: #ff007b;
+  color: #ff007b;
+}
+
+.score-shadow {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  height: 10px;
+}
+
+.score-shadow div:first-child {
+  box-shadow: 0px -5px 50px #00fa75;
+  background: #68ffae;
+  height: 5px;
+  width: 100%;
+}
+
+.score-shadow div:last-child {
+  box-shadow: 0px -5px 50px #ff007b;
+  background: #ff007b;
+  height: 5px;
+  width: 100%;
+}
+
+canvas {
+  border: 10px solid #c1afff;
+  border-radius: 55px;
+  background: #191a2f;
+  box-shadow: 0px 0px 60px #997dff4d;
 }

@@ -7,13 +7,31 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="waiting-players" id="waiting-player"></div>
+    <div class="waiting-players" id="waiting-player">
+      <h1 class="waiting-text">Esperando o segundo jogador...</h1>
+
+      <lottie-player
+        src="https://assets5.lottiefiles.com/packages/lf20_LwuNNj/data.json"
+        background="transparent"
+        speed="1"
+        style="width: 300px; height: 300px"
+        loop
+        autoplay
+      ></lottie-player>
+    </div>
     <div class="shell-game" id="game-shell">
-      <h1 class="score" id="score"></h1>
       <canvas id="gameCanvas" width="800" height="600"></canvas>
+      <div class="score" id="score">
+        <span id="playerA-score">0</span> <span id="playerB-score">0</span>
+      </div>
+      <div class="score-shadow" id="score">
+        <div></div>
+        <div></div>
+      </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuidv4.min.js"></script>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

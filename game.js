@@ -16,7 +16,7 @@ const createEngine = () => {
   // Configuração dos objetos do jogo
   const paddleWidth = 20;
   const paddleHeight = 100;
-  const paddleSpeed = 30;
+  const paddleSpeed = 10;
   const maxPaddleY = engine.world.bounds.max.y - paddleHeight / 2;
   const minPaddleY = paddleHeight / 2;
 
@@ -25,7 +25,7 @@ const createEngine = () => {
     friction: 0,
     frictionStatic: 0,
     frictionAir: 0,
-    restitution: 1.4,
+    restitution: 1.1,
   };
 
   const ball = Bodies.circle(400, 300, 10, ballSettings);
@@ -101,8 +101,8 @@ function resetBall(ball) {
 }
 
 function getRandomInitialForce() {
-  const maxForce = 0.1; // Defina a força máxima aqui
-  const minForce = 0.1; // Defina a força mínima aqui
+  const maxForce = 0.007;
+  const minForce = 0.007;
   let xForce = Math.random() * (maxForce - minForce) + minForce;
   let yForce = Math.random() * (maxForce - minForce) + minForce;
 
@@ -115,6 +115,13 @@ function getRandomInitialForce() {
   }
 
   return { x: xForce * xDirection, y: yForce * yDirection };
+}
+
+function checkBallDirection(ball) {
+  const minHorizontalSpeed = 0.000001; // Defina o valor mínimo de velocidade horizontal aqui
+  if (Math.abs(ball.velocity.x) < minHorizontalSpeed) {
+    console.log("bola parada verticalmente");
+  }
 }
 
 const lerp = (start, end, amount) => start + (end - start) * amount;
@@ -203,13 +210,13 @@ const startGame = (engineData, roomName, players, gameState) => {
     if (gameState.state === "playing") {
       gameState.state = "playing";
       Engine.update(engineData.engine, 1000 / 60);
+      checkBallDirection(engineData.ball);
       checkMaxSpeed(engineData, maxSpeed);
       checkIfIsFirstRun(engineData, gameState);
       checkCollisions(engineData, gameState);
-      makeMovesOfPadddles(players)
+      makeMovesOfPadddles(players);
+      io.to(roomName).emit("gameState", gameState);
     }
-    
-    io.to(roomName).emit("gameState", gameState);
     gameState.gameLoopInterval = setTimeout(gameLoop, 1000 / 60);
   }
   if (gameState.state !== "playing") {
