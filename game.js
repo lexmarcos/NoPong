@@ -204,8 +204,9 @@ const startGame = (engineData, roomName, players, gameState) => {
       return setTimeout(gameLoop, 1000 / 60);
     }
 
-    if(gameState.score.playerA === 15 || gameState.score.playerB === 15){
+    if(gameState.score.playerA === 5 || gameState.score.playerB === 5){
       gameState.state = "winner";
+      gameState.winner = gameState.score.playerA === 5 ? players[0].username : players[1].username;
       io.to(roomName).emit("gameState", gameState);
       return;
     }

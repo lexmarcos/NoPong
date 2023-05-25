@@ -10,7 +10,7 @@ const getPlayerPaddle = (numbersOfPlayers, engineDataOfRoom) => {
   return engineDataOfRoom.paddleB;
 };
 
-const joinRoom = (socket, room) => {
+const joinRoom = (socket, room, username) => {
   if (!rooms.has(room)) {
     const engineData = createEngine(room);
     rooms.set(room, {
@@ -23,6 +23,7 @@ const joinRoom = (socket, room) => {
         ball: engineData.ball.position,
         state: "waitingForPlayers",
         firstRun: true,
+        winner: null,
         score: {
           playerA: 0,
           playerB: 0,
@@ -45,6 +46,7 @@ const joinRoom = (socket, room) => {
     id: socket.id,
     paddle: getPlayerPaddle(players.length, engineDataOfRoom),
     score: 0,
+    username,
   });
 
   if (players.length === 1 && gameState.state !== "playing") {
@@ -52,6 +54,7 @@ const joinRoom = (socket, room) => {
   }
 
   if (players.length === 2) {
+    console.log("room is full");
     gameState.state = "playing";
   }
 
@@ -97,7 +100,8 @@ const disconnectPlayer = (socket) => {
 io.on("connection", (socket) => {
   socket.on("joinRoom", (data) => {
     const room = data.room;
-    joinRoom(socket, room);
+    const username = data.username;
+    joinRoom(socket, room, username);
   });
 
   socket.on("move", (data) => {

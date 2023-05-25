@@ -1,12 +1,20 @@
-const socket = io();
 const room = new URLSearchParams(window.location.search).get("room");
 if (!room) {
-  window.location.href = "/createRoom.html";
+  window.location.href = "/createRoom/createRoom.html";
 }
+
+const username = localStorage.getItem("username");
+
+if (!username) {
+  window.location.href = "/addusername/index.html?room=" + room;
+}
+
+const socket = io();
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-socket.emit("joinRoom", { room });
+socket.emit("joinRoom", { room, username });
 
 // Função para enviar comandos de movimento
 function sendMove(direction) {
@@ -48,7 +56,7 @@ waitingPlayerDiv = document.getElementById("waiting-player");
 
 function setScore(score) {
   if (oldScore && (oldScore.playerA < score.playerA || oldScore.playerB < score.playerB)) {
-    document.getElementById("playerA-score").innerHTML = score.playerA;
+    document.getElementById("playerA-score").innerHTML = score.playerA ;
     document.getElementById("playerB-score").innerHTML = score.playerB;
   }
 }
@@ -107,16 +115,16 @@ function updateGameState(score, data) {
   setScore(score);
 }
 
-function checkIfHasWinner(state) {
-  if (state === "winner") {
-    const winner = score.playerA === 10 ? "player A" : "player B";
-    alert(`The winner is ${winner}`);
-    window.location.href = "/createRoom.html";
+function checkIfHasWinner(gameState) {
+  if (gameState.state === "winner") {
+    const winner = gameState.winner;
+    window.location.href = "/winner.html?winner=" + winner;
   }
 }
 
 socket.on("gameState", (data) => {
   const { isCollidingWithPaddleA, isCollidingWithPaddleB, ball, state, score } = data;
+  checkIfHasWinner(data);
   playPaddleSound(isCollidingWithPaddleA, isCollidingWithPaddleB);
   handlePaddleTouch(isCollidingWithPaddleA, isCollidingWithPaddleB);
   updateBallTrail(ball);
@@ -186,8 +194,8 @@ function drawBallTrail() {
   ballTrail.forEach((position, index) => {
     const opacity = (index + 1) / ballTrail.length;
     const sizeOfTrail = index / 2;
-    const hue = (index / ballTrail.length) * 360;
-    ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${(index + 1) / ballTrail.length})`;
+    const hue = (index / ballTrail.length) * 360; // Varia de 0 a 360
+    ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${(index + 1) / ballTrail.length})`; // Use HSLA para definir a cor
     ctx.globalAlpha = opacity;
     ctx.beginPath();
     ctx.arc(position.x, position.y, sizeOfTrail, 0, 2 * Math.PI);

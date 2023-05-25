@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add username</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>No<span class="pong">Pong!</span></h1>
+      <p>O pong para se divertir com seus amigos.</p>
+      <form id="username-form">
+        <input type="text" id="username" name="username" placeholder="Seu nick" required />
+        <input type="submit" value="Ir para o jogo" />
+      </form>
+    </div>
+
+    <script>
+      const room = new URLSearchParams(window.location.search).get("room");
+      if (!room) {
+        window.location.href = "/createRoom/createRoom.html";
+      }
+      document.getElementById("username-form").addEventListener("submit", function (event) {
+        // Impede o comportamento de envio padrão
+        event.preventDefault();
+        var username = document.getElementById("username").value;
+
+        localStorage.setItem("username", username);
+
+        // Redireciona o usuário para a URL com o nome da sala como um parâmetro de pesquisa
+        window.location.href = "/?room=" + encodeURIComponent(room);
+      });
+    </script>
+  </body>
+</html>
