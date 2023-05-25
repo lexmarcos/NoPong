@@ -15,29 +15,29 @@ body {
   color: #fff;
 }
 
-#username-form{
-    display: flex;
-    flex-direction: column;
+#username-form {
+  display: flex;
+  flex-direction: column;
 }
 
-#username-form input[type="text"]{
-    margin: 1rem 0 1.5rem 0;
-    padding: 0.75rem;
+#username-form input[type="text"] {
+  margin: 1rem 0 1.5rem 0;
+  padding: 0.75rem;
 }
 
-#username-form input[type="submit"]{
-    margin: auto;
-    padding: 1rem 3rem;
-    border-radius: 50px;
-    border: none;
-    background: rgb(2,0,36);
-    color: #fff;
-background: linear-gradient(45deg, #68ffae 0%, #c1afff 35% 100%);
+#username-form input[type="submit"] {
+  margin: auto;
+  padding: 1rem 3rem;
+  border-radius: 50px;
+  border: none;
+  background: rgb(2, 0, 36);
+  color: #fff;
+  background: linear-gradient(45deg, #68ffae 0%, #c1afff 35% 100%);
 }
 
-h1{
-    color: #68ffae;
-    margin: 0rem;
+h1 {
+  color: #68ffae;
+  margin: 0rem;
 }
 .pong {
   color: #c1afff;

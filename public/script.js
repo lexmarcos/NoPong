@@ -5,7 +5,7 @@ if (!room) {
 
 const username = localStorage.getItem("username");
 
-if (!username) {
+if (!username && room) {
   window.location.href = "/addusername/index.html?room=" + room;
 }
 
