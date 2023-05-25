@@ -32,7 +32,7 @@ const saveSocketId = (id) => {
 
 const room = new URLSearchParams(window.location.search).get("room");
 if (!room) {
-  window.location.href = "/createRoom.html";
+  window.location.href = "/createRoom/createRoom.html";
 }
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -79,7 +79,10 @@ let oldScore = {
 waitingPlayerDiv = document.getElementById("waiting-player");
 
 function setScore(score) {
-  if (oldScore && (oldScore.playerA < score.playerA || oldScore.playerB < score.playerB)) {
+  if (
+    oldScore &&
+    (oldScore.playerA < score.playerA || oldScore.playerB < score.playerB)
+  ) {
     document.getElementById("playerA-score").innerHTML = score.playerA;
     document.getElementById("playerB-score").innerHTML = score.playerB;
   }
@@ -140,7 +143,8 @@ function updateGameState(score, data) {
 }
 
 socket.on("gameState", (data) => {
-  const { isCollidingWithPaddleA, isCollidingWithPaddleB, ball, state, score } = data;
+  const { isCollidingWithPaddleA, isCollidingWithPaddleB, ball, state, score } =
+    data;
   playPaddleSound(isCollidingWithPaddleA, isCollidingWithPaddleB);
   handlePaddleTouch(isCollidingWithPaddleA, isCollidingWithPaddleB);
   updateBallTrail(ball);
@@ -211,7 +215,9 @@ function drawBallTrail() {
     const opacity = (index + 1) / ballTrail.length;
     const sizeOfTrail = index / 2;
     const hue = (index / ballTrail.length) * 360; // Varia de 0 a 360
-    ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${(index + 1) / ballTrail.length})`; // Use HSLA para definir a cor
+    ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${
+      (index + 1) / ballTrail.length
+    })`; // Use HSLA para definir a cor
     ctx.globalAlpha = opacity;
     ctx.beginPath();
     ctx.arc(position.x, position.y, sizeOfTrail, 0, 2 * Math.PI);
@@ -231,7 +237,11 @@ function render() {
   if (!currentState) return;
 
   const alpha = computeAlpha();
-  const interpolatedState = interpolateState(previousState, currentState, alpha);
+  const interpolatedState = interpolateState(
+    previousState,
+    currentState,
+    alpha
+  );
 
   clearCanvas();
   drawGameElements(interpolatedState);
