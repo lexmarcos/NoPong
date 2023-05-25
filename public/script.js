@@ -54,10 +54,13 @@ let oldScore = {
 
 waitingPlayerDiv = document.getElementById("waiting-player");
 
-function setScore(score) {
-  if (oldScore && (oldScore.playerA < score.playerA || oldScore.playerB < score.playerB)) {
-    document.getElementById("playerA-score").innerHTML = score.playerA ;
-    document.getElementById("playerB-score").innerHTML = score.playerB;
+function setScore(score, players) {
+  if (
+    (oldScore && (oldScore.playerA < score.playerA || oldScore.playerB < score.playerB)) ||
+    (oldScore.playerA === 0 && oldScore.playerB === 0)
+  ) {
+    document.getElementById("playerA-score").innerHTML = `${score.playerA}  |  ${players[0]}`;
+    document.getElementById("playerB-score").innerHTML = `${score.playerB}  |  ${players[1]}`;
   }
 }
 
@@ -108,11 +111,11 @@ function handleGameStates(state) {
   }
 }
 
-function updateGameState(score, data) {
+function updateGameState(score, gameState, players) {
   previousState = currentState;
-  currentState = data;
+  currentState = gameState;
   stateReceivedAt = Date.now();
-  setScore(score);
+  setScore(score, gameState.playersNames);
 }
 
 function checkIfHasWinner(gameState) {

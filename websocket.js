@@ -24,6 +24,7 @@ const joinRoom = (socket, room, username) => {
         state: "waitingForPlayers",
         firstRun: true,
         winner: null,
+        playersNames: [],
         score: {
           playerA: 0,
           playerB: 0,
@@ -49,12 +50,13 @@ const joinRoom = (socket, room, username) => {
     username,
   });
 
+  gameState.playersNames.push(username);
+
   if (players.length === 1 && gameState.state !== "playing") {
     startGame(engineDataOfRoom, room, players, gameState);
   }
 
   if (players.length === 2) {
-    console.log("room is full");
     gameState.state = "playing";
   }
 

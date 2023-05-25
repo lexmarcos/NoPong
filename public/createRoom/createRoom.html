@@ -19,6 +19,12 @@
     </div>
 
     <script>
+      const usernameLocal = localStorage.getItem("username");
+      if (usernameLocal) {
+        const userNameInput = document.getElementById("username");
+        userNameInput.value = usernameLocal;
+        userNameInput.disabled = true;
+      }
       document.getElementById("room-form").addEventListener("submit", function (event) {
         // Impede o comportamento de envio padrão
         event.preventDefault();

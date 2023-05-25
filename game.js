@@ -25,7 +25,7 @@ const createEngine = () => {
     friction: 0,
     frictionStatic: 0,
     frictionAir: 0,
-    restitution: 1.1,
+    restitution: 1.4,
   };
 
   const ball = Bodies.circle(400, 300, 10, ballSettings);
@@ -101,8 +101,8 @@ function resetBall(ball) {
 }
 
 function getRandomInitialForce() {
-  const maxForce = 0.007;
-  const minForce = 0.007;
+  const maxForce = 0.005;
+  const minForce = 0.005;
   let xForce = Math.random() * (maxForce - minForce) + minForce;
   let yForce = Math.random() * (maxForce - minForce) + minForce;
 
@@ -115,13 +115,6 @@ function getRandomInitialForce() {
   }
 
   return { x: xForce * xDirection, y: yForce * yDirection };
-}
-
-function checkBallDirection(ball) {
-  const minHorizontalSpeed = 0.000001; // Defina o valor mínimo de velocidade horizontal aqui
-  if (Math.abs(ball.velocity.x) < minHorizontalSpeed) {
-    console.log("bola parada verticalmente");
-  }
 }
 
 const checkCollisions = (engineData, gameState) => {
@@ -204,9 +197,9 @@ const startGame = (engineData, roomName, players, gameState) => {
       return setTimeout(gameLoop, 1000 / 60);
     }
 
-    if(gameState.score.playerA === 5 || gameState.score.playerB === 5){
+    if(gameState.score.playerA === 15 || gameState.score.playerB === 15){
       gameState.state = "winner";
-      gameState.winner = gameState.score.playerA === 5 ? players[0].username : players[1].username;
+      gameState.winner = gameState.score.playerA === 15 ? players[0].username : players[1].username;
       io.to(roomName).emit("gameState", gameState);
       return;
     }
