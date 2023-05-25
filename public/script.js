@@ -1,35 +1,4 @@
-const socket = io("ws://localhost:3000", {
-  reconnection: true,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  reconnectionAttempts: Infinity,
-});
-
-// Quando o socket se conecta, verifica se há um estado salvo no LocalStorage
-socket.on("connect", () => {
-  console.log("aqui");
-  const savedState = localStorage.getItem("savedState");
-  if (savedState) {
-    // Se houver um estado salvo, envie-o para o servidor
-    socket.emit("loadState", JSON.parse(savedState));
-  }
-});
-
-// Quando o estado do jogo é atualizado, salve-o no LocalStorage
-socket.on("stateUpdate", (state) => {
-  localStorage.setItem("savedState", JSON.stringify(state));
-});
-
-const saveSocketId = (id) => {
-  localStorage.setItem(
-    "oldId",
-    JSON.stringify({
-      createdAt: Date.now(),
-      id: socket.id,
-    })
-  );
-};
-
+const socket = io();
 const room = new URLSearchParams(window.location.search).get("room");
 if (!room) {
   window.location.href = "/createRoom.html";
@@ -38,7 +7,6 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 socket.emit("joinRoom", { room });
-saveSocketId(socket.id);
 
 // Função para enviar comandos de movimento
 function sendMove(direction) {
@@ -139,6 +107,14 @@ function updateGameState(score, data) {
   setScore(score);
 }
 
+function checkIfHasWinner(state) {
+  if (state === "winner") {
+    const winner = score.playerA === 10 ? "player A" : "player B";
+    alert(`The winner is ${winner}`);
+    window.location.href = "/createRoom.html";
+  }
+}
+
 socket.on("gameState", (data) => {
   const { isCollidingWithPaddleA, isCollidingWithPaddleB, ball, state, score } = data;
   playPaddleSound(isCollidingWithPaddleA, isCollidingWithPaddleB);
@@ -206,12 +182,12 @@ function drawGameElements(state) {
 }
 
 function drawBallTrail() {
-  ctx.fillStyle = "rgba(255, 255, 255, 0.5)"; // Ajuste a cor e a opacidade conforme necessário
+  ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
   ballTrail.forEach((position, index) => {
     const opacity = (index + 1) / ballTrail.length;
     const sizeOfTrail = index / 2;
-    const hue = (index / ballTrail.length) * 360; // Varia de 0 a 360
-    ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${(index + 1) / ballTrail.length})`; // Use HSLA para definir a cor
+    const hue = (index / ballTrail.length) * 360;
+    ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${(index + 1) / ballTrail.length})`;
     ctx.globalAlpha = opacity;
     ctx.beginPath();
     ctx.arc(position.x, position.y, sizeOfTrail, 0, 2 * Math.PI);

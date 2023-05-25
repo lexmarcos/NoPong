@@ -52,7 +52,6 @@ const joinRoom = (socket, room) => {
   }
 
   if (players.length === 2) {
-    console.log("starting game");
     gameState.state = "playing";
   }
 

@@ -124,9 +124,6 @@ function checkBallDirection(ball) {
   }
 }
 
-const lerp = (start, end, amount) => start + (end - start) * amount;
-const lerpSpeed = 0.1;
-
 const checkCollisions = (engineData, gameState) => {
   const collisionsWithRightWall = Detector.collisions(
     engineData.detectorOfRightWall,
@@ -185,7 +182,7 @@ checkIfIsFirstRun = (engineData, gameState) => {
 };
 
 const makeMovesOfPadddles = (players) => {
-  Object.values(players).forEach((player) => {
+  players.forEach((player) => {
     const targetY = player.targetY;
     if (targetY !== undefined) {
       // Defina a posição do paddle diretamente para a posição alvo
@@ -207,10 +204,16 @@ const startGame = (engineData, roomName, players, gameState) => {
       return setTimeout(gameLoop, 1000 / 60);
     }
 
+    if(gameState.score.playerA === 15 || gameState.score.playerB === 15){
+      gameState.state = "winner";
+      io.to(roomName).emit("gameState", gameState);
+      return;
+    }
+
     if (gameState.state === "playing") {
       gameState.state = "playing";
       Engine.update(engineData.engine, 1000 / 60);
-      checkBallDirection(engineData.ball);
+      // checkBallDirection(engineData.ball);
       checkMaxSpeed(engineData, maxSpeed);
       checkIfIsFirstRun(engineData, gameState);
       checkCollisions(engineData, gameState);
